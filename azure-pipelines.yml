@@ -10,30 +10,35 @@ variables:
   value: '20.x'
 
 # Artifactory secrets (set these as secret variables in Azure DevOps)
+# ARTIFACTORY_URL → your Artifactory npm repository URL without https://
+# Example: your-company.jfrog.io/artifactory/api/npm/ramya-npm
 # NPM_TOKEN → your Artifactory npm token
-# ARTIFACTORY_URL → your Artifactory npm repo URL, e.g., your-company.jfrog.io/artifactory/api/npm/npm-repo/
 
 steps:
 
-# 1. Install Node.js
+# 1️⃣ Install Node.js
 - task: NodeTool@0
   inputs:
     versionSpec: $(NODE_VERSION)
   displayName: 'Install Node.js'
 
-# 2. Install npm dependencies
+# 2️⃣ Install npm dependencies
 - script: npm install
   displayName: 'Install dependencies'
 
-# 3. Configure Artifactory .npmrc with secret URL and token
+# 3️⃣ Configure npm for Artifactory (securely using secrets)
 - script: |
-    echo "//${ARTIFACTORY_URL}:_authToken=${NPM_TOKEN}" > .npmrc
-    echo "registry=https://${ARTIFACTORY_URL}" >> .npmrc
+    echo "registry=https://${ARTIFACTORY_URL}" > .npmrc
+    echo "//${ARTIFACTORY_URL}:_authToken=${NPM_TOKEN}" >> .npmrc
   displayName: 'Configure npm for Artifactory'
   env:
-    NPM_TOKEN: $(NPM_TOKEN)
     ARTIFACTORY_URL: $(ARTIFACTORY_URL)
+    NPM_TOKEN: $(NPM_TOKEN)
 
-# 4. Publish package to Artifactory
+# 4️⃣ Debug step (optional, check registry)
+- script: npm config get registry
+  displayName: 'Check npm registry'
+
+# 5️⃣ Publish package to Artifactory
 - script: npm publish
   displayName: 'Publish package'
